@@ -1,0 +1,6 @@
+import {NextRequest,NextResponse} from "next/server";
+import {z} from "zod";
+import {prisma} from "@/lib/prisma";
+const projectSchema=z.object({title:z.string().min(3),description:z.string().default(""),departmentId:z.string(),departmentName:z.string(),status:z.enum(["Planning","Approved","In Progress","On Hold","Completed"]).default("Planning"),priority:z.enum(["Low","Medium","High","Critical"]).default("Medium"),manager:z.string(),startDate:z.coerce.date(),endDate:z.coerce.date(),budget:z.number().nonnegative().default(0)});
+export async function GET(){try{return NextResponse.json(await prisma.project.findMany({orderBy:{endDate:"asc"}}))}catch{return NextResponse.json({error:"Database is not initialized. Run the seed command."},{status:503})}}
+export async function POST(req:NextRequest){const parsed=projectSchema.safeParse(await req.json());if(!parsed.success)return NextResponse.json({error:parsed.error.flatten()},{status:400});if(parsed.data.endDate<parsed.data.startDate)return NextResponse.json({error:"End date must be after start date."},{status:400});try{const item=await prisma.project.create({data:parsed.data});return NextResponse.json(item,{status:201})}catch{return NextResponse.json({error:"Could not create project. Check that the department exists."},{status:400})}}

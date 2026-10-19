@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Department {
+  id           String    @id @default(cuid())
+  name         String    @unique
+  short        String
+  color        String
+  icon         String
+  head         String
+  members      Int       @default(0)
+  projects     Int       @default(0)
+  shared       Int       @default(0)
+  utilization  Int       @default(0)
+  projectsData Project[]
+  resources    Resource[]
+  users        User[]
+}
+
+model User {
+  id           String      @id @default(cuid())
+  name         String
+  email        String      @unique
+  role         String
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+}
+
+model Project {
+  id             String     @id @default(cuid())
+  title          String
+  description    String
+  departmentId   String
+  departmentName String
+  status         String
+  priority       String
+  manager        String
+  startDate      DateTime
+  endDate        DateTime
+  budget         Float
+  progress       Int        @default(0)
+  department     Department @relation(fields: [departmentId], references: [id])
+}
+
+model Resource {
+  id             String     @id @default(cuid())
+  name           String     @unique
+  category       String
+  departmentId   String
+  departmentName String
+  location       String
+  quantity       Int
+  available      Int
+  utilization    Int
+  condition      String
+  manager        String
+  description    String
+  department     Department @relation(fields: [departmentId], references: [id])
+}
+
+model ResourceRequest {
+  id        String   @id @default(cuid())
+  resource  String
+  department String
+  requester String
+  quantity  Int
+  project   String
+  startDate DateTime
+  endDate   DateTime
+  priority  String
+  status    String
+  purpose   String
+  notes     String?
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  detail    String
+  category  String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
